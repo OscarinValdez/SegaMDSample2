@@ -13,7 +13,8 @@
 #define SFX_MONEDA 67
 #define SFX_MORIR 68
 
-
+//Creamos una entidad para:
+//Grupo de variables exclusivas para todos los tipos de objetos (Enemigos,Monedas,Municiones,etc)
 typedef struct {
 	int x;
 	int y;
@@ -28,11 +29,13 @@ typedef struct {
 	int type;
 } Entidad;
 
+//Matar Objeto
 void matarEntidad(Entidad* j){
 	j->salud = 0;
 	SPR_setVisibility(j->sprite,HIDDEN);
 }
 
+//Aparecer objeto
 void revivirEntidad(Entidad* j){
 	j->salud = 1;
 	SPR_setVisibility(j->sprite,VISIBLE);
@@ -85,6 +88,7 @@ char str_monedas[4] = "0";
 Map *bga, *bgb;
 u16 ind, bgBaseTileIndex[2];
 
+//Carga las variables para las balas
 void prepararBalas(){
     Entidad* b = balas;
     for(i = 0; i < MAX_BALAS; i++){
@@ -98,12 +102,13 @@ void prepararBalas(){
     }
 }
 
+//Carga las variables para los enemigos y el jugador
 void prepararEnemigos(){
     Entidad* e = enemigos;
 
     for (i=0;i<1792;i++)
     {
-        if (nivel_id[nivel_actual][i]==7)
+        if (nivel_id[nivel_actual][i]==7) // Carga los ejes X y Y para el jugador segun donde esté en el nivel actual
         {
             plx=(i%64)<<4;
             ply=(i>>6)<<4;
@@ -111,6 +116,7 @@ void prepararEnemigos(){
 
         if (nivel_id[nivel_actual][i]>=3 && nivel_id[nivel_actual][i]<=6)
         {
+		// Carga los ejes X y Y para los enemigos segun donde estén en el nivel actual
             e->x = (i%64)<<4;
             e->y = (i>>6)<<4;
             e->w = 32;
@@ -120,25 +126,26 @@ void prepararEnemigos(){
             e->salud = 1;
             e->dir = 0;
 
-            if (e->sprite==0 && nivel_id[nivel_actual][i]==3)
+            if (e->sprite==0 && nivel_id[nivel_actual][i]==3) //Puerta
             e->sprite = SPR_addSprite(&puerta,e->x,e->y,TILE_ATTR(PAL1,0,FALSE,TRUE));
 
-            if (e->sprite==0 && nivel_id[nivel_actual][i]==4)
+            if (e->sprite==0 && nivel_id[nivel_actual][i]==4) //Enemigo 1
             e->sprite = SPR_addSprite(&malo1,e->x,e->y,TILE_ATTR(PAL1,0,FALSE,TRUE));
 
-            if (e->sprite==0 && nivel_id[nivel_actual][i]==5)
+            if (e->sprite==0 && nivel_id[nivel_actual][i]==5) //Enemigo 2
             e->sprite = SPR_addSprite(&malo2,e->x,e->y,TILE_ATTR(PAL1,0,FALSE,TRUE));
 
-            if (e->sprite==0 && nivel_id[nivel_actual][i]==6)
+            if (e->sprite==0 && nivel_id[nivel_actual][i]==6) //Enemigo 3
             e->sprite = SPR_addSprite(&malo3,e->x,e->y,TILE_ATTR(PAL1,0,FALSE,TRUE));
 
             e->type = nivel_id[nivel_actual][i];
 
-            e++;
+            e++;//Siguiente
         }
     }
 }
 
+//Carga las variables para las monedas
 void prepararMonedas(){
     Entidad* m = monedas;
 
@@ -157,7 +164,8 @@ void prepararMonedas(){
     }
 }
 
-void dispararBala(){
+//Salen las balas cuando presionamos el botón del disparo
+void dispararBala(){ 
     if( balasEnPantalla < MAX_BALAS )
     {
         Entidad* b;
@@ -183,6 +191,7 @@ void dispararBala(){
     }
 }
 
+//Actualiza las posiciones de las balas en patalla segun se estén moviendo
 void posicionBalas()
 {
     Entidad *b;
@@ -206,6 +215,7 @@ void posicionBalas()
     }
 }
 
+ //Actualiza las posiciones de los enemigos en patalla segun se estén moviendo
 void posicionEnemigos(){
     Entidad* e;
     for(i = 0; i < MAX_ENEMIGOS; i++){
@@ -282,6 +292,7 @@ void posicionEnemigos(){
     }
 }
 
+//Actualiza las posiciones de las monedas en patalla segun se estén moviendo
 void posicionMonedas(){
     Entidad* m;
 
@@ -323,6 +334,7 @@ void posicionMonedas(){
      }
 }
 
+//Controlar al personaje
 void prepararControles(u16 control,u16 suelto, u16 boton)
 {
     if (control == JOY_1)
@@ -364,6 +376,7 @@ void prepararControles(u16 control,u16 suelto, u16 boton)
 	}
 }
 
+//Actualizar las ubicaciones del jugador
 void moverJugador()
 {
     if (movy>max_movy) movy=max_movy;
@@ -390,7 +403,7 @@ void moverJugador()
     if (nivel_id[nivel_actual][((ply>>4)<<6)+(((plx+15)>>4))]==1) plx=(plx>>4)<<4;
     if (nivel_id[nivel_actual][((ply>>4)<<6)+((plx>>4))]==1) plx=((plx>>4)+1)<<4;
 
-    if (ply>ORILLA_ABJ) cargarNivel();
+    if (ply>ORILLA_ABJ) cargarNivel(); //Reiniciar nivel si se cae al fondo
 
     if (nivel_id[nivel_actual][((ply>>4)<<6)+(plx>>4)]==3)
     {
@@ -398,9 +411,9 @@ void moverJugador()
         VDP_resetScreen();
         VDP_clearPlane(BG_B, TRUE);
         plx=0; ply=0;
-        MAP_scrollTo(bga, plx-640, ply-640);
+        MAP_scrollTo(bga, plx-640, ply-640);//Reacomodar la pantalla
         MAP_scrollTo(bgb, plx-640, ply-640);
-        reiniciarBalas();
+        reiniciarBalas();//Y volvemos a cargas las variables de todos los objetos
         reiniciarSpritesEnemigos();
         reiniciarMonedas();
         cargarNivel();
@@ -409,6 +422,7 @@ void moverJugador()
     SPR_setPosition(jugador,posx-8,posy);
 }
 
+//Si el jugador avanza y ya va a la mitad de la pantalla
 void desplazarPantalla()
 {
    if (plx>=MITAD_1RA_PANT && plx <=MITAD_ULTIMA_PANT)
@@ -438,6 +452,7 @@ void desplazarPantalla()
 
 }
 
+//Controlar el numero máximo de balas
 void checarBalasEnPantalla()
 {
     if(balasEnPantalla < MAX_BALAS)
@@ -463,6 +478,7 @@ void checarEnemigosEnPantalla()
     }
 }
 
+//Función para checar fácilmente las colisiones entre dos objetos
 int colisionarEntidades(Entidad* a, Entidad* b)
 {
     return (a->x < b->x + b->w && a->x + a->w > b->x && a->y < b->y + b->h && a->y + a->h >= b->y);
@@ -577,6 +593,7 @@ void cargarNivel()
     pldir = TRUE;
 }
 
+//Cuerpo principal del programa
 int main(u16 hard)
 {
     JOY_init();
